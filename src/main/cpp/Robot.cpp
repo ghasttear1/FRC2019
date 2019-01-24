@@ -7,85 +7,56 @@
 
 #include "Robot.h"
 
-#include <iostream>
-
-#include <ctre/Phoenix.h>
-
-#include <frc/smartdashboard/SmartDashboard.h>
-#include <frc/SpeedControllerGroup.h>
-#include <frc/drive/DifferentialDrive.h>
-#include <frc/Joystick.h>
-
-#include <cameraserver/CameraServer.h>
-
-#include <opencv2/opencv.hpp>
-
-using namespace frc;
-using namespace cv;
-using namespace std;
-
 // Thread so the robot doesn't need to wait for the completion
-// static void VisionThread() {
-// 	cs::UsbCamera camera = CameraServer::GetInstance()->StartAutomaticCapture(0);
-// 	// camera.SetResolution(640, 480);
-// 	cs::CvSink cvSink = CameraServer::GetInstance()->GetVideo();
-// 	cs::CvSource output = CameraServer::GetInstance()->PutVideo("customview", 640, 480);
-// 	// Initialise Materials
-// 	Mat frame;
-// 	Mat frame_HSV;
-// 	Mat frame_threshold;
-// 	vector<vector<Point>> contours;
-// 	Vec4f lines;
-// 	// Factors
-// 	int leniencyFactor = 50;
-// 	int brightnessMin = 160;
-// 	while(true) {
-// 		cvSink.GrabFrame(frame);
-// 		cvtColor(frame, frame_HSV, COLOR_BGR2HSV);
-// 		GaussianBlur(frame_HSV, frame_HSV, Size(3, 3), 0);
-// 		inRange(frame_HSV, Scalar(0, 0, brightnessMin), Scalar(80, 80, 255), frame_threshold);
-// 		if (!countNonZero(frame_threshold) < 1) {
-// 			findContours(frame_threshold, contours, RETR_LIST, CHAIN_APPROX_SIMPLE);
-// 			fitLine(Mat(contours[0]), lines, 2, 0, 0.01, 0.01);
+static void VisionThread() {
+	cs::UsbCamera camera = CameraServer::GetInstance()->StartAutomaticCapture(0);
+	camera.SetResolution(640, 480);
+	cs::CvSink cvSink = CameraServer::GetInstance()->GetVideo();
+	cs::CvSource output = CameraServer::GetInstance()->PutVideo("customview", 640, 480);
+	// Initialise Materials
+	Mat frame;
+	Mat frame_HSV;
+	Mat frame_threshold;
+	vector<vector<Point>> contours;
+	Vec4f lines;
+	// Factors
+	int leniencyFactor = 50;
+	int brightnessMin = 180;
+	while(true) {
+		cvSink.GrabFrame(frame);
+		cvtColor(frame, frame_HSV, COLOR_BGR2HSV);
+		GaussianBlur(frame_HSV, frame_HSV, Size(3, 3), 0);
+		inRange(frame_HSV, Scalar(0, 0, brightnessMin), Scalar(80, 80, 255), frame_threshold);
+		// !!! Following code too intensive for roboRIO, need Coprocessor such as a raspberry pi !!!
+		// if (!countNonZero(frame_threshold) < 1) {
+		// 	findContours(frame_threshold, contours, RETR_LIST, CHAIN_APPROX_SIMPLE);
+		// 	fitLine(Mat(contours[0]), lines, 2, 0, 0.01, 0.01);
 
-// 			int lefty = (-lines[2] * lines[1] / lines[0]) + lines[3];
-// 			int righty = ((frame_HSV.cols - lines[2])*lines[1] / lines[0]) + lines[3];
+		// 	int lefty = (-lines[2] * lines[1] / lines[0]) + lines[3];
+		// 	int righty = ((frame_HSV.cols - lines[2])*lines[1] / lines[0]) + lines[3];
 
-// 			if (righty >= (lefty - leniencyFactor) && righty <= (lefty + leniencyFactor)) {
-// 				cout << "Forwards";
-// 			}
-// 			else {
-// 				cout << "Direction";
-// 			}
-// 			// cout << lefty << "---" << righty << endl;
-// 			// Draws line on frame from right to left with colour blue
-// 			line(frame, Point(frame_HSV.cols - 1, righty), Point(0, lefty), Scalar(255, 0, 0), 2);
-// 		}
-// 		output.PutFrame(frame);
-// 	}
-// }
+		// 	// if (righty >= (lefty - leniencyFactor) && righty <= (lefty + leniencyFactor)) {
+		// 	// 	cout << "Forwards";
+		// 	// }
+		// 	// else {
+		// 	// 	cout << "Direction";
+		// 	// }
+		// 	// cout << lefty << "---" << righty << endl;
+		// 	// Draws line on frame from right to left with colour blue
+		// 	line(frame, Point(frame_HSV.cols - 1, righty), Point(0, lefty), Scalar(255, 0, 0), 2);
+		// }
+		output.PutFrame(frame_threshold);
+	}
+}
 
 void Robot::RobotInit() {
-	// thread visionThread(VisionThread);
-	// visionThread.detach();
-	CameraServer::GetInstance()->StartAutomaticCapture();
+	thread visionThread(VisionThread);
+	visionThread.detach();
+	// CameraServer::GetInstance()->StartAutomaticCapture();
 	m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
 	m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
 	SmartDashboard::PutData("Auto Modes", &m_chooser);
 }
-
-Joystick driverGamePad{0};
-
-WPI_VictorSPX m_rightSPX1{0};
-WPI_VictorSPX m_rightSPX2{1};
-WPI_VictorSPX m_leftSPX1{2};
-WPI_VictorSPX m_leftSPX2{3};
-
-SpeedControllerGroup m_left{m_leftSPX1, m_leftSPX2};
-SpeedControllerGroup m_right{m_rightSPX1, m_rightSPX2};
-
-DifferentialDrive m_drive{m_left, m_right};
-
 
 /**
  * This function is called every robot packet, no matter the mode. Use
@@ -132,7 +103,10 @@ void Robot::AutonomousPeriodic() {
 void Robot::TeleopInit() {}
 
 void Robot::TeleopPeriodic() {
-	m_drive.ArcadeDrive((driverGamePad.GetRawAxis(1) * 0.9), (driverGamePad.GetRawAxis(2) * 0.7));
+	m_drive.ArcadeDrive((driverGamePad.GetRawAxis(1) * inputVoltage(10.8)), (driverGamePad.GetRawAxis(4) * inputVoltage(8.4)));
+	if (driverGamePad.GetRawButtonPressed(3)) {
+		SetTimedMotor(m_test, inputVoltage(8), 2.0);
+	}
 }
 
 void Robot::TestPeriodic() {}
