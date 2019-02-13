@@ -11,11 +11,15 @@
 #include <iostream>
 
 #include <frc/IterativeRobot.h>
-#include <frc/smartdashboard/SendableChooser.h>
-#include <frc/smartdashboard/SmartDashboard.h>
+// #include <frc/smartdashboard/SendableChooser.h>
+// #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/SpeedControllerGroup.h>
 #include <frc/drive/DifferentialDrive.h>
 #include <frc/Joystick.h>
+// #include <frc/shuffleboard/Shuffleboard.h>
+// #include <frc/shuffleboard/ShuffleboardTab.h>
+
+// #include <networktables/NetworkTableEntry.h>
 
 #include <ctre/Phoenix.h>
 
@@ -36,38 +40,41 @@ class Robot : public frc::IterativeRobot {
     void TeleopInit() override;
     void TeleopPeriodic() override;
     void TestPeriodic() override;
+    bool camStatus;
 
+  // These variables are private to class robot
   private:
     // Declaring variables
     WPI_VictorSPX m_rightSPX1{0};
     WPI_VictorSPX m_rightSPX2{1};
     WPI_VictorSPX m_leftSPX1{2};
     WPI_VictorSPX m_leftSPX2{3};
+    WPI_VictorSPX m_armSPX1{4};
+    WPI_VictorSPX m_rampSPX1{5};
+    WPI_VictorSPX m_winchSPX1{6};
     SpeedControllerGroup m_left{m_leftSPX1, m_leftSPX2};
     SpeedControllerGroup m_right{m_rightSPX1, m_rightSPX2};
     DifferentialDrive m_drive{m_left, m_right};
 
-    Joystick driverGamePad{0};
-    Timer timer;
-    SendableChooser<std::string> m_chooser;
-    const std::string kAutoNameDefault = "Default";
-    const std::string kAutoNameCustom = "My Auto";
-    string m_autoSelected;
-
-    // Creates pointer m_test to leftSPX1 (replace values for use with actual motor)
-    SpeedController* m_test = &m_leftSPX1;
+    Joystick m_driverGamePad{0};
+    // Joystick m_armGamePad{1};
+    Timer m_timer;
+    // SendableChooser<std::string> m_chooser;
+    // const std::string kAutoNameDefault = "Default";
+    // const std::string kAutoNameCustom = "My Auto";
+    // string m_autoSelected;
 
     // Functions
-    double inputVoltage(double voltage) {
+    double InputVoltage(double voltage) {
       return(voltage/12);
     }
 
     void SetTimedMotor(SpeedController* motor, double motorSpeed, double motorTime) {
-      timer.Start();
-      while(!timer.Get() >= motorSpeed) {
+      m_timer.Start();
+      while(!m_timer.Get() >= motorSpeed) {
         motor->Set(0.0);
       }
       motor->Set(0.0);
-      timer.Stop();
+      m_timer.Stop();
     }
 };
