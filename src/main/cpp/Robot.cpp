@@ -22,11 +22,16 @@ void VisionThread() {
 	Timer wait;
 	double leniencyFactor = 0.3;
 	int brightnessMin = 160;
-	int x = 315;
-	int y = 315;
-	int width = 10;
-	int height = 10;
-	Mat frame, frame_HSV, frame_threshold, frame_BW;
+	int x = 159;
+	int y = 119;
+	int width = 2;
+	int height = 2;
+	Point pt1(x,y);
+	Point pt2(x + width,y + height);
+	bool lenStatus;
+	int factor;
+	Mat frame;
+	Mat frame_BW;
 	// Network table for adjusting minimum brightness for frame threshold
 	// nt::NetworkTableEntry brightnessMin = Shuffleboard::GetTab("Camera")
 	// 	.Add("Minimum Brightness", 255)
@@ -39,11 +44,7 @@ void VisionThread() {
 		// Grab frame from input
 		cvSink.GrabFrame(frame);
 		cvtColor(frame, frame_BW, COLOR_BGR2GRAY);
-
-		Point pt1(x,y);
-		Point pt2(x + width,y + height);
-		bool lenStatus = false;
-		int factor = 0;
+		factor = 0;
 
 		for (int yi = 0; yi < y + height; ++yi) {
 			for (int xi = 0; xi < x + width; ++xi) {
@@ -56,15 +57,19 @@ void VisionThread() {
 
 		if (factor > ((y + height * x + width) * leniencyFactor)) {
 			lenStatus = true;
+		} else {
+			lenStatus = false;
 		}
+
 		if (lenStatus) {
 			rectangle(frame, pt1, pt2, Scalar(0,255,0));
 		} else {
 			rectangle(frame, pt1, pt2, Scalar(0,0,255));
 		}
 		robotLink.camStatus = lenStatus;
+
 		// Output frame
-		output.PutFrame(frame_BW);
+		output.PutFrame(frame);
 	}
 }
 
@@ -127,14 +132,14 @@ void Robot::TeleopPeriodic() {
 	// Arcade drive takes joystick axis -1 to 1 value multiplyed by max speed for up down, left right
 	m_drive.ArcadeDrive((m_driverGamePad.GetRawAxis(1) * InputVoltage(10.8)), (m_driverGamePad.GetRawAxis(4) * InputVoltage(8.4)));
 	// When button 3 is pressed set pointer(declare in header), to desired voltage and time 
-	if (m_driverGamePad.GetRawButtonPressed(4)) {
+	if (m_driverGamePad.GetRawButtonPressed(3)) {
 		SetTimedMotor(&m_rampSPX1, InputVoltage(8), 2.0);
 	}
 	
 	// Controls arm out and in
-	if (m_driverGamePad.GetRawButton(3)) {
+	if (m_driverGamePad.GetRawButton(1)) {
 		m_armSPX1.Set(InputVoltage(12));
-	} else if(m_driverGamePad.GetRawButton(1)) {
+	} else if(m_driverGamePad.GetRawButton(2)) {
 		m_armSPX1.Set(InputVoltage(-12));
 	}
 	else {
