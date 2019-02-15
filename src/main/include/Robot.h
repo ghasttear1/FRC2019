@@ -33,5 +33,5 @@ class Robot : public frc::TimedRobot {
     private:
         OI oi;
         RobotMap robotMap;
-        Function function;
+        Function fn;
 };

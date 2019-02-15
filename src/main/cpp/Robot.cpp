@@ -47,15 +47,15 @@ void Robot::TeleopInit() {}
 
 void Robot::TeleopPeriodic() {
 	// Arcade drive takes joystick axis -1 to 1 value multiplyed by max speed for up down, left right
-	robotMap.m_drive.ArcadeDrive((oi.m_driverGamePad.GetRawAxis(1) * function.InputVoltage(10.8)),
-	(oi.m_driverGamePad.GetRawAxis(4) * function.InputVoltage(8.4)));
+	robotMap.m_drive.ArcadeDrive((oi.m_driverGamePad.GetRawAxis(1) * fn.InputVoltage(10.8)),
+	(oi.m_driverGamePad.GetRawAxis(4) * fn.InputVoltage(8.4)));
 
 	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonB)) {
-		robotMap.m_ramp.Set(function.InputVoltage(-12));
+		robotMap.m_ramp.Set(fn.InputVoltage(-12));
 	} else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonX)) {
-		robotMap.m_ramp.Set(function.InputVoltage(12));
+		robotMap.m_ramp.Set(fn.InputVoltage(12));
 	} else {
-		robotMap.m_ramp.Set(function.InputVoltage(0));
+		robotMap.m_ramp.Set(fn.InputVoltage(0));
 	}
 
 	// Basic Auto Alignment Handler
