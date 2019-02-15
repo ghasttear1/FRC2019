@@ -16,12 +16,6 @@
 #include "Function.h"
 #include "Vision.h"
 
-// #include <frc/smartdashboard/SendableChooser.h>
-// #include <frc/smartdashboard/SmartDashboard.h>
-// #include <frc/shuffleboard/Shuffleboard.h>
-// #include <frc/shuffleboard/ShuffleboardTab.h>
-// #include <networktables/NetworkTableEntry.h>
-
 using namespace frc;
 using namespace std;
 
@@ -35,14 +29,9 @@ class Robot : public frc::TimedRobot {
         void TeleopPeriodic() override;
         void TestPeriodic() override;
 
-    // These variables are private to class robot
+    // Makes instances of public classes for use in class Robot
     private:
         OI oi;
         RobotMap robotMap;
         Function function;
-        
-        // SendableChooser<std::string> m_chooser;
-        // const std::string kAutoNameDefault = "Default";
-        // const std::string kAutoNameCustom = "My Auto";
-        // string m_autoSelected;
 };

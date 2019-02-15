@@ -7,10 +7,12 @@ using namespace frc;
 
 class Function {
     public:
+        // Divide input by 12
         double InputVoltage(double voltage) {
             return(voltage/12);
         }
 
+        // Set motor at speed for a specific amount of time
         void SetTimedMotor(SpeedController* motor, double motorSpeed, double motorTime) {
             Timer timer;
             timer.Start();
@@ -21,6 +23,7 @@ class Function {
             timer.Stop();
         }
 
+        // // Turn degrees into setpoint for PID
         // double toPIDDegrees(int degrees) {
         //   return(output)
         // }

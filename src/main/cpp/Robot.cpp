@@ -11,11 +11,9 @@ void Robot::RobotInit() {
 	// Start and detach the vision thread
 	thread visionThread(Vision::VisionThread);
 	visionThread.detach();
-
-	// CameraServer::GetInstance()->StartAutomaticCapture();
-	// m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
-	// m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
-	// SmartDashboard::PutData("Auto Modes", &m_chooser);
+	// Start PIDController
+	PIDController armControl(0.1, 0.001, 0.0, robotMap.m_armEncoder, &robotMap.m_armSPX1);
+	armControl.Enable();
 }
 
 /**
@@ -39,25 +37,10 @@ void Robot::RobotPeriodic() {}
  * if-else structure below with additional strings. If using the SendableChooser
  * make sure to add them to the chooser code above as well.
  */
-void Robot::AutonomousInit() {
-	// m_autoSelected = m_chooser.GetSelected();
-	// // m_autoSelected = SmartDashboard::GetString(
-	// //     "Auto Selector", kAutoNameDefault);
-	// std::cout << "Auto selected: " << m_autoSelected << std::endl;
-
-	// if (m_autoSelected == kAutoNameCustom) {
-	// 	// Custom Auto goes here
-	// } else {
-	// 	// Default Auto goes here
-	// }
-}
+void Robot::AutonomousInit() {}
 
 void Robot::AutonomousPeriodic() {
-	// if (m_autoSelected == kAutoNameCustom) {
-	// 	// Custom Auto goes here
-	// } else {
-	// 	// Default Auto goes here
-	// }
+	// Mirror Teleop
 }
 
 void Robot::TeleopInit() {}
@@ -67,14 +50,22 @@ void Robot::TeleopPeriodic() {
 	robotMap.m_drive.ArcadeDrive((oi.m_driverGamePad.GetRawAxis(1) * function.InputVoltage(10.8)),
 	(oi.m_driverGamePad.GetRawAxis(4) * function.InputVoltage(8.4)));
 
-	// Basic Auto Alignment Handler
-	if (oi.m_driverGamePad.GetRawButton(4)) {
-		if (true) {
-			robotMap.m_drive.ArcadeDrive((function.InputVoltage(1)), function.InputVoltage(0));
-		} else {
-			robotMap.m_drive.ArcadeDrive((function.InputVoltage(0)), function.InputVoltage(1));
-		}
+	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonB)) {
+		robotMap.m_ramp.Set(function.InputVoltage(-12));
+	} else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonX)) {
+		robotMap.m_ramp.Set(function.InputVoltage(12));
+	} else {
+		robotMap.m_ramp.Set(function.InputVoltage(0));
 	}
+
+	// Basic Auto Alignment Handler
+	// if (oi.m_driverGamePad.GetRawButton(oi.m_buttonA)) {
+	// 	if (true) {
+	// 		robotMap.m_drive.ArcadeDrive((function.InputVoltage(1)), function.InputVoltage(0));
+	// 	} else {
+	// 		robotMap.m_drive.ArcadeDrive((function.InputVoltage(0)), function.InputVoltage(1));
+	// 	}
+	// }
 }
 
 void Robot::TestPeriodic() {}
