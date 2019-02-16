@@ -1,4 +1,4 @@
-#include "Robot.h"
+#include "Functions.h"
 
 // Divide input by 12
 double Functions::InputVoltage(double voltage) {
