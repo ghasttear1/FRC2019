@@ -12,7 +12,7 @@ void Robot::RobotInit() {
 	thread visionThread(Vision::VisionThread);
 	visionThread.detach();
 	// Start PIDController (ntested)
-	PIDController armControl(0.1, 0.001, 0.0, robotMap.m_armEncoder, &robotMap.m_armSPX1);
+	PIDController armControl(0.1, 0.001, 0.0, &robotMap.m_armEncoder, &robotMap.m_armSPX1);
 	armControl.Enable();
 }
 

@@ -24,5 +24,5 @@ class RobotMap {
         DifferentialDrive m_drive{m_left, m_right};
 
         // Start encoder
-	    Encoder *m_armEncoder = new Encoder(0, 1, false, Encoder::EncodingType::k4X);
+        Encoder m_armEncoder{0, 1, false, Encoder::EncodingType::k4X};
 };
