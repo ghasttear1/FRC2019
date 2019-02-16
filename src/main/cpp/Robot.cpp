@@ -11,7 +11,7 @@ void Robot::RobotInit() {
 	// Start and detach the vision thread
 	thread visionThread(Vision::VisionThread);
 	visionThread.detach();
-	// Start PIDController
+	// Start PIDController (ntested)
 	PIDController armControl(0.1, 0.001, 0.0, robotMap.m_armEncoder, &robotMap.m_armSPX1);
 	armControl.Enable();
 }
@@ -58,14 +58,14 @@ void Robot::TeleopPeriodic() {
 		robotMap.m_ramp.Set(fn.InputVoltage(0));
 	}
 
-	// Basic Auto Alignment Handler
-	// if (oi.m_driverGamePad.GetRawButton(oi.m_buttonA)) {
-	// 	if (true) {
-	// 		robotMap.m_drive.ArcadeDrive((function.InputVoltage(1)), function.InputVoltage(0));
-	// 	} else {
-	// 		robotMap.m_drive.ArcadeDrive((function.InputVoltage(0)), function.InputVoltage(1));
-	// 	}
-	// }
+	// Basic Auto Alignment Handler (ntested)
+	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonY)) {
+		if (vision.lenStatus) {
+			robotMap.m_drive.ArcadeDrive((fn.InputVoltage(1)), fn.InputVoltage(0));
+		} else {
+			robotMap.m_drive.ArcadeDrive((fn.InputVoltage(0)), fn.InputVoltage(1));
+		}
+	}
 }
 
 void Robot::TestPeriodic() {}

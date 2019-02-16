@@ -13,7 +13,7 @@
 #include <frc/TimedRobot.h>
 #include "OI.h"
 #include "RobotMap.h"
-#include "Function.h"
+#include "Functions.h"
 #include "Vision.h"
 
 using namespace frc;
@@ -33,5 +33,6 @@ class Robot : public frc::TimedRobot {
     private:
         OI oi;
         RobotMap robotMap;
-        Function fn;
+        Functions fn;
+        Vision vision;
 };
