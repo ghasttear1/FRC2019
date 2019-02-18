@@ -11,9 +11,6 @@ void Robot::RobotInit() {
 	// Start and detach the vision thread
 	thread visionThread(Vision::VisionThread);
 	visionThread.detach();
-	// Start PIDController (ntested)
-	PIDController armControl(0.1, 0.001, 0.0, &robotMap.m_armEncoder, &robotMap.m_armSPX1);
-	armControl.Enable();
 }
 
 /**
@@ -47,7 +44,7 @@ void Robot::TeleopInit() {}
 
 void Robot::TeleopPeriodic() {
 	// Arcade drive takes joystick axis -1 to 1 value multiplyed by max speed for up down, left right
-	robotMap.m_drive.ArcadeDrive((oi.m_driverGamePad.GetRawAxis(1) * fn.InputVoltage(10.8)),
+	robotMap.m_drive.ArcadeDrive((-(oi.m_driverGamePad.GetRawAxis(1)) * fn.InputVoltage(10.8)),
 	(oi.m_driverGamePad.GetRawAxis(4) * fn.InputVoltage(8.4)));
 
 	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonB)) {
@@ -56,6 +53,14 @@ void Robot::TeleopPeriodic() {
 		robotMap.m_ramp.Set(fn.InputVoltage(12));
 	} else {
 		robotMap.m_ramp.Set(fn.InputVoltage(0));
+	}
+
+	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonLB)) {
+		robotMap.m_armSPX1.Set(fn.InputVoltage(-12));
+	} else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonRB)) {
+		robotMap.m_armSPX1.Set(fn.InputVoltage(12));
+	} else {
+		robotMap.m_armSPX1.Set(fn.InputVoltage(0));
 	}
 
 	// Basic Auto Alignment Handler (ntested)

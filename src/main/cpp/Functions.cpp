@@ -7,13 +7,9 @@ double Functions::InputVoltage(double voltage) {
 
 // Set motor at speed for a specific amount of time (ntested)
 void Functions::SetTimedMotor(SpeedController* motor, double motorSpeed, double motorTime) {
-    Timer timer;
-    timer.Start();
-    while(!timer.Get() >= motorSpeed) {
-        motor->Set(0.0);
-    }
+    motor->Set(motorSpeed);
+    Wait(motorTime);
     motor->Set(0.0);
-    timer.Stop();
 }
 
 // // Turn degrees into setpoint for PID

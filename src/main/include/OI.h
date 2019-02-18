@@ -13,4 +13,6 @@ class OI {
         int m_buttonB = 2;
         int m_buttonX = 3;
         int m_buttonY = 4;
+        int m_buttonLB = 5;
+        int m_buttonRB = 6;
 };
