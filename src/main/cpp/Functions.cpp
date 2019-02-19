@@ -11,8 +11,3 @@ void Functions::SetTimedMotor(SpeedController* motor, double motorSpeed, double 
     Wait(motorTime);
     motor->Set(0.0);
 }
-
-// // Turn degrees into setpoint for PID
-// double toPIDDegrees(int degrees) {
-//   return(output)
-// }

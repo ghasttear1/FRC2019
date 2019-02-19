@@ -5,6 +5,7 @@
 #include <frc/drive/DifferentialDrive.h>
 #include <frc/Encoder.h>
 #include <frc/PIDController.h>
+#include <frc/DigitalInput.h>
 
 using namespace frc;
 
@@ -22,7 +23,13 @@ class RobotMap {
         SpeedControllerGroup m_left{m_leftSPX1, m_leftSPX2};
         SpeedControllerGroup m_right{m_rightSPX1, m_rightSPX2};
         DifferentialDrive m_drive{m_left, m_right};
-
-        // Start encoder
+        // Create digital input for limit switch on channel 2
+        DigitalInput m_armlimit{2};
+        // Create encoder for arm on channel 0, 1
         Encoder m_armEncoder{0, 1, false, Encoder::EncodingType::k4X};
+        // Create PIDController for arm
+        PIDController m_armControl{0.325, 0.0, 0.0, &m_armEncoder, &m_armSPX1};
+        // Declare ArmInit function
+        static void ArmInit();
+        int m_armState = 0;
 };

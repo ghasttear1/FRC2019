@@ -11,6 +11,11 @@ void Robot::RobotInit() {
 	// Start and detach the vision thread
 	thread visionThread(Vision::VisionThread);
 	visionThread.detach();
+	// Start and detach the arm initialisation thread
+	thread armThread(RobotMap::ArmInit);
+	armThread.detach();
+	// Make PID visible for dashboard
+	SmartDashboard::PutData("PID", &robotMap.m_armControl);
 }
 
 /**
@@ -40,34 +45,57 @@ void Robot::AutonomousPeriodic() {
 	// Mirror Teleop
 }
 
-void Robot::TeleopInit() {}
+void Robot::TeleopInit() {
+}
 
 void Robot::TeleopPeriodic() {
 	// Arcade drive takes joystick axis -1 to 1 value multiplyed by max speed for up down, left right
 	robotMap.m_drive.ArcadeDrive((-(oi.m_driverGamePad.GetRawAxis(1)) * fn.InputVoltage(10.8)),
 	(oi.m_driverGamePad.GetRawAxis(4) * fn.InputVoltage(8.4)));
 
+	// Basic if statement for ramp
 	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonB)) {
 		robotMap.m_ramp.Set(fn.InputVoltage(-12));
-	} else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonX)) {
+	}
+	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonX)) {
 		robotMap.m_ramp.Set(fn.InputVoltage(12));
-	} else {
+	} 
+	else {
 		robotMap.m_ramp.Set(fn.InputVoltage(0));
 	}
 
+	// Sets m_armState when one of these buttons are pressed
 	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonLB)) {
-		robotMap.m_armSPX1.Set(fn.InputVoltage(-12));
-	} else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonRB)) {
-		robotMap.m_armSPX1.Set(fn.InputVoltage(12));
-	} else {
-		robotMap.m_armSPX1.Set(fn.InputVoltage(0));
+		robotMap.m_armState = 0;
+	} 
+	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonA)) {
+		robotMap.m_armState = 1;
+	}
+	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonRB)) {
+		robotMap.m_armState = 2;
+	}
+
+	// Switch for PID setpoints for arm in 2:1 ratio e.g (180 = 90degrees)
+	switch(robotMap.m_armState) 
+	{
+		case 0:
+			robotMap.m_armControl.SetSetpoint(0.00);
+			break;
+		case 1: 
+			robotMap.m_armControl.SetSetpoint(120.00);
+			break;
+		case 2: 
+			robotMap.m_armControl.SetSetpoint(150.00);
+			break;
 	}
 
 	// Basic Auto Alignment Handler (ntested)
-	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonY)) {
+	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonY)) 
+	{
 		if (vision.lenStatus) {
 			robotMap.m_drive.ArcadeDrive((fn.InputVoltage(1)), fn.InputVoltage(0));
-		} else {
+		} 
+		else {
 			robotMap.m_drive.ArcadeDrive((fn.InputVoltage(0)), fn.InputVoltage(1));
 		}
 	}

@@ -6,6 +6,7 @@
 
 class Vision {
     public:
+        // Declare vision thread
         static void VisionThread();
         // (ntested)
         bool lenStatus;

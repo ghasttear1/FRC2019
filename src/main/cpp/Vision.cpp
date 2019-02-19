@@ -4,8 +4,9 @@ using namespace cv;
 using namespace cs;
 using namespace frc;
 
-// A thread responisble for handling camera output (ntested)
+// A thread responisble for handling camera output
 void Vision::VisionThread() {
+    Vision vision;
     // Initialise variables
     double leniencyFactor = 0.3;
     int brightnessMin = 160;
@@ -13,7 +14,6 @@ void Vision::VisionThread() {
     int y = 119;
     int width = 2;
     int height = 2;
-    bool lenStatus;
     int factor;
     int checkArea = (y + height * x + width) * leniencyFactor;
     Point pt1(x,y);
@@ -51,13 +51,13 @@ void Vision::VisionThread() {
 
         // If high enough amount of pixels in area are bright lenStatus = true
         if (factor > checkArea) {
-            lenStatus = true;
+            vision.lenStatus = true;
         } else {
-            lenStatus = false;
+            vision.lenStatus = false;
         }
 
         // Display red/green rectangle based on lenStatus
-        if (lenStatus) {
+        if (vision.lenStatus) {
             rectangle(frame, pt1, pt2, Scalar(0,255,0));
         } else {
             rectangle(frame, pt1, pt2, Scalar(0,0,255));
