@@ -7,6 +7,6 @@ using namespace frc;
 
 class Functions {
     public:
-        double InputVoltage(double voltage);
-        void SetTimedMotor(SpeedController* motor, double motorSpeed, double motorTime);
+        float InputVoltage(float voltage);
+        void SetTimedMotor(SpeedController* motor, float motorSpeed, float motorTime);
 };

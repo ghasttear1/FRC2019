@@ -30,6 +30,6 @@ class RobotMap {
         // Create PIDController for arm
         PIDController m_armControl{0.325, 0.0, 0.0, &m_armEncoder, &m_armSPX1};
         // Declare ArmInit function
-        static void ArmInit();
+        static void ArmInit(RobotMap* robotMap);
         int m_armState = 0;
 };

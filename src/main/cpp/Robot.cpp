@@ -9,13 +9,19 @@
 
 void Robot::RobotInit() {
 	// Start and detach the vision thread
-	thread visionThread(Vision::VisionThread);
+	thread visionThread(Vision::VisionThread, &vision);
 	visionThread.detach();
 	// Start and detach the arm initialisation thread
-	thread armThread(RobotMap::ArmInit);
+	thread armThread(RobotMap::ArmInit, &robotMap);
 	armThread.detach();
-	// Make PID visible for dashboard
+	// robotMap.m_armEncoder.Reset();
+	// robotMap.m_armControl.Enable();
+	// robotMap.m_armControl.SetSetpoint(0);
+
+	// Dashboard data
 	SmartDashboard::PutData("PID", &robotMap.m_armControl);
+	SmartDashboard::PutNumber("Drive Speed", oi.m_driveSpeed);
+	SmartDashboard::PutNumber("Turn Speed", oi.m_driveSpeed);
 }
 
 /**
@@ -50,29 +56,31 @@ void Robot::TeleopInit() {
 
 void Robot::TeleopPeriodic() {
 	// Arcade drive takes joystick axis -1 to 1 value multiplyed by max speed for up down, left right
-	robotMap.m_drive.ArcadeDrive((-(oi.m_driverGamePad.GetRawAxis(1)) * fn.InputVoltage(10.8)),
-	(oi.m_driverGamePad.GetRawAxis(4) * fn.InputVoltage(8.4)));
+	robotMap.m_drive.ArcadeDrive((-(oi.m_driverGamePad.GetRawAxis(1)) * fn.InputVoltage(oi.m_driveSpeed)),
+	(oi.m_driverGamePad.GetRawAxis(4) * fn.InputVoltage(oi.m_turnSpeed)));
 
 	// Basic if statement for ramp
-	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonB)) {
+	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonLB)) {
 		robotMap.m_ramp.Set(fn.InputVoltage(-12));
 	}
-	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonX)) {
+	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonRB)) {
 		robotMap.m_ramp.Set(fn.InputVoltage(12));
 	} 
 	else {
 		robotMap.m_ramp.Set(fn.InputVoltage(0));
 	}
 
-	// Sets m_armState when one of these buttons are pressed
-	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonLB)) {
-		robotMap.m_armState = 0;
-	} 
-	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonA)) {
-		robotMap.m_armState = 1;
-	}
-	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonRB)) {
-		robotMap.m_armState = 2;
+	// Sets m_armState based on Dpad presses
+	switch(oi.m_driverGamePad.GetPOV()) {
+		case 180:
+			robotMap.m_armState = 0;
+			break;
+		case 270:
+			robotMap.m_armState = 1;
+			break;
+		case 0:
+			robotMap.m_armState = 0;
+			break;
 	}
 
 	// Switch for PID setpoints for arm in 2:1 ratio e.g (180 = 90degrees)
@@ -85,7 +93,7 @@ void Robot::TeleopPeriodic() {
 			robotMap.m_armControl.SetSetpoint(120.00);
 			break;
 		case 2: 
-			robotMap.m_armControl.SetSetpoint(150.00);
+			robotMap.m_armControl.SetSetpoint(170.00);
 			break;
 	}
 
@@ -99,6 +107,7 @@ void Robot::TeleopPeriodic() {
 			robotMap.m_drive.ArcadeDrive((fn.InputVoltage(0)), fn.InputVoltage(1));
 		}
 	}
+	
 }
 
 void Robot::TestPeriodic() {}
