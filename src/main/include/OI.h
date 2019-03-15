@@ -15,6 +15,6 @@ class OI {
         int m_buttonY = 4;
         int m_buttonLB = 5;
         int m_buttonRB = 6;
-        float m_driveSpeed = 10.2;
-        float m_turnSpeed = 8.0;
+        float m_driveSpeed = 8.8;
+        float m_turnSpeed = 7.2;
 };

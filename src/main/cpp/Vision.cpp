@@ -22,7 +22,7 @@ void Vision::VisionThread(Vision* vision) {
 
     // Start capture and set parameters
     UsbCamera camera = CameraServer::GetInstance()->StartAutomaticCapture();
-    camera.SetResolution(320, 240);
+    camera.SetResolution(240, 180);
     camera.SetFPS(30);
     // Set frame input and output
     CvSink cvSink = CameraServer::GetInstance()->GetVideo();
