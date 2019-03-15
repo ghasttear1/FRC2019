@@ -96,10 +96,10 @@ void Robot::AutonomousPeriodic() {
 			robotMap.m_armControl.SetSetpoint(0.00);
 			break;
 		case 1: 
-			robotMap.m_armControl.SetSetpoint(120.00);
+			robotMap.m_armControl.SetSetpoint(112.00);
 			break;
 		case 2: 
-			robotMap.m_armControl.SetSetpoint(170.00);
+			robotMap.m_armControl.SetSetpoint(165.00);
 			break;
 		case 3:
 			robotMap.m_armControl.SetSetpoint(-170.00);
@@ -181,15 +181,15 @@ void Robot::TeleopPeriodic() {
 	}
 
 	// Basic Auto Alignment Handler (ntested)
-	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonY)) 
-	{
-		if (vision.lenStatus) {
-			robotMap.m_drive.ArcadeDrive((fn.InputVoltage(1)), fn.InputVoltage(0));
-		} 
-		else {
-			robotMap.m_drive.ArcadeDrive((fn.InputVoltage(0)), fn.InputVoltage(1));
-		}
-	}
+	// if (oi.m_driverGamePad.GetRawButton(oi.m_buttonY)) 
+	// {
+	// 	if (vision.lenStatus) {
+	// 		robotMap.m_drive.ArcadeDrive((fn.InputVoltage(1)), fn.InputVoltage(0));
+	// 	} 
+	// 	else {
+	// 		robotMap.m_drive.ArcadeDrive((fn.InputVoltage(0)), fn.InputVoltage(1));
+	// 	}
+	// }
 	
 }
 
