@@ -99,10 +99,10 @@ void Robot::AutonomousPeriodic() {
 			robotMap.m_armControl.SetSetpoint(112.00);
 			break;
 		case 2: 
-			robotMap.m_armControl.SetSetpoint(165.00);
+			robotMap.m_armControl.SetSetpoint(180.00);
 			break;
 		case 3:
-			robotMap.m_armControl.SetSetpoint(-170.00);
+			robotMap.m_armControl.SetSetpoint(-180.00);
 			break;
 	}
 
@@ -173,10 +173,10 @@ void Robot::TeleopPeriodic() {
 			robotMap.m_armControl.SetSetpoint(112.00);
 			break;
 		case 2: 
-			robotMap.m_armControl.SetSetpoint(165.00);
+			robotMap.m_armControl.SetSetpoint(180.00);
 			break;
 		case 3:
-			robotMap.m_armControl.SetSetpoint(-170.00);
+			robotMap.m_armControl.SetSetpoint(-180.00);
 			break;
 	}
 

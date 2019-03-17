@@ -29,7 +29,7 @@ class RobotMap {
         Encoder m_armEncoder{0, 1, false, Encoder::EncodingType::k4X};
         // Create PIDController for arm
         // Old P: 0.325
-        PIDController m_armControl{0.1, 0.0, 0.0, &m_armEncoder, &m_armSPX1};
+        PIDController m_armControl{0.05, 0.0, 0.0, &m_armEncoder, &m_armSPX1};
         // Declare ArmInit function
         static void ArmInit(RobotMap* robotMap);
         int m_armState = 0;
