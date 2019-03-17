@@ -15,5 +15,7 @@
   "files.associations": {
     "thread": "cpp",
     "*.inc": "cpp"
-  }
+  },
+  "python.linting.pylintEnabled": true,
+  "python.linting.enabled": true
 }

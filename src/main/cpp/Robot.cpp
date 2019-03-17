@@ -7,55 +7,21 @@
 
 #include "Robot.h"
 
-// Thread so the robot doesn't need to wait for the completion
-static void VisionThread() {
-	cs::UsbCamera camera = CameraServer::GetInstance()->StartAutomaticCapture(0);
-	camera.SetResolution(640, 480);
-	cs::CvSink cvSink = CameraServer::GetInstance()->GetVideo();
-	cs::CvSource output = CameraServer::GetInstance()->PutVideo("customview", 640, 480);
-	// Initialise Materials
-	Mat frame;
-	Mat frame_HSV;
-	Mat frame_threshold;
-	vector<vector<Point>> contours;
-	Vec4f lines;
-	// Factors
-	int leniencyFactor = 50;
-	int brightnessMin = 180;
-	while(true) {
-		cvSink.GrabFrame(frame);
-		cvtColor(frame, frame_HSV, COLOR_BGR2HSV);
-		GaussianBlur(frame_HSV, frame_HSV, Size(3, 3), 0);
-		inRange(frame_HSV, Scalar(0, 0, brightnessMin), Scalar(80, 80, 255), frame_threshold);
-		// !!! Following code too intensive for roboRIO, need Coprocessor such as a raspberry pi !!!
-		// if (!countNonZero(frame_threshold) < 1) {
-		// 	findContours(frame_threshold, contours, RETR_LIST, CHAIN_APPROX_SIMPLE);
-		// 	fitLine(Mat(contours[0]), lines, 2, 0, 0.01, 0.01);
-
-		// 	int lefty = (-lines[2] * lines[1] / lines[0]) + lines[3];
-		// 	int righty = ((frame_HSV.cols - lines[2])*lines[1] / lines[0]) + lines[3];
-
-		// 	// if (righty >= (lefty - leniencyFactor) && righty <= (lefty + leniencyFactor)) {
-		// 	// 	cout << "Forwards";
-		// 	// }
-		// 	// else {
-		// 	// 	cout << "Direction";
-		// 	// }
-		// 	// cout << lefty << "---" << righty << endl;
-		// 	// Draws line on frame from right to left with colour blue
-		// 	line(frame, Point(frame_HSV.cols - 1, righty), Point(0, lefty), Scalar(255, 0, 0), 2);
-		// }
-		output.PutFrame(frame_threshold);
-	}
-}
-
 void Robot::RobotInit() {
-	thread visionThread(VisionThread);
+	// Start and detach the vision thread
+	thread visionThread(Vision::VisionThread, &vision);
 	visionThread.detach();
-	// CameraServer::GetInstance()->StartAutomaticCapture();
-	m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
-	m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
-	SmartDashboard::PutData("Auto Modes", &m_chooser);
+	// Start and detach the arm initialisation thread
+	// thread armThread(RobotMap::ArmInit, &robotMap);
+	// armThread.detach();
+	robotMap.m_armEncoder.Reset();
+	robotMap.m_armControl.Enable();
+	robotMap.m_armControl.SetSetpoint(0);
+
+	// Dashboard data
+	SmartDashboard::PutData("PID", &robotMap.m_armControl);
+	SmartDashboard::PutNumber("Drive Speed", oi.m_driveSpeed);
+	SmartDashboard::PutNumber("Turn Speed", oi.m_driveSpeed);
 }
 
 /**
@@ -79,34 +45,152 @@ void Robot::RobotPeriodic() {}
  * if-else structure below with additional strings. If using the SendableChooser
  * make sure to add them to the chooser code above as well.
  */
-void Robot::AutonomousInit() {
-	m_autoSelected = m_chooser.GetSelected();
-	// m_autoSelected = SmartDashboard::GetString(
-	//     "Auto Selector", kAutoNameDefault);
-	std::cout << "Auto selected: " << m_autoSelected << std::endl;
-
-	if (m_autoSelected == kAutoNameCustom) {
-		// Custom Auto goes here
-	} else {
-		// Default Auto goes here
-	}
-}
+void Robot::AutonomousInit() {}
 
 void Robot::AutonomousPeriodic() {
-	if (m_autoSelected == kAutoNameCustom) {
-		// Custom Auto goes here
-	} else {
-		// Default Auto goes here
+	// Arcade drive takes joystick axis -1 to 1 value multiplyed by max speed for up down, left right
+	robotMap.m_drive.ArcadeDrive((-(oi.m_driverGamePad.GetRawAxis(1)) * fn.InputVoltage(oi.m_driveSpeed)),
+	(oi.m_driverGamePad.GetRawAxis(4) * fn.InputVoltage(oi.m_turnSpeed)));
+
+	// Basic if statement for ramp
+	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonLB)) {
+		robotMap.m_ramp.Set(fn.InputVoltage(-12));
 	}
+	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonRB)) {
+		robotMap.m_ramp.Set(fn.InputVoltage(12));
+	} 
+	else {
+		robotMap.m_ramp.Set(fn.InputVoltage(0));
+	}
+
+	// Sets m_armState based on Dpad presses
+	// switch(oi.m_driverGamePad.GetPOV()) {
+	// 	case 180:
+	// 		robotMap.m_armState = 2;
+	// 		break;
+	// 	case 270:
+	// 		robotMap.m_armState = 1;
+	// 		break;
+	// 	case 0:
+	// 		robotMap.m_armState = 0;
+	// 		break;
+	// }
+
+	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonA)) {
+		robotMap.m_armState = 2;
+	}
+	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonB)) {
+		robotMap.m_armState = 1;
+	}
+	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonX)) {
+		robotMap.m_armState = 0;
+	}
+	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonY)) {
+		robotMap.m_armState = 3;
+	}
+
+	// Switch for PID setpoints for arm in 2:1 ratio e.g (180 = 90degrees)
+	switch(robotMap.m_armState) 
+	{
+		case 0:
+			robotMap.m_armControl.SetSetpoint(0.00);
+			break;
+		case 1: 
+			robotMap.m_armControl.SetSetpoint(112.00);
+			break;
+		case 2: 
+			robotMap.m_armControl.SetSetpoint(180.00);
+			break;
+		case 3:
+			robotMap.m_armControl.SetSetpoint(-180.00);
+			break;
+	}
+
+	// Basic Auto Alignment Handler (ntested)
+	// if (oi.m_driverGamePad.GetRawButton(oi.m_buttonY)) 
+	// {
+	// 	if (vision.lenStatus) {
+	// 		robotMap.m_drive.ArcadeDrive((fn.InputVoltage(1)), fn.InputVoltage(0));
+	// 	} 
+	// 	else {
+	// 		robotMap.m_drive.ArcadeDrive((fn.InputVoltage(0)), fn.InputVoltage(1));
+	// 	}
+	// }
 }
 
-void Robot::TeleopInit() {}
+void Robot::TeleopInit() {
+}
 
 void Robot::TeleopPeriodic() {
-	m_drive.ArcadeDrive((driverGamePad.GetRawAxis(1) * inputVoltage(10.8)), (driverGamePad.GetRawAxis(4) * inputVoltage(8.4)));
-	if (driverGamePad.GetRawButtonPressed(3)) {
-		SetTimedMotor(m_test, inputVoltage(8), 2.0);
+	// Arcade drive takes joystick axis -1 to 1 value multiplyed by max speed for up down, left right
+	robotMap.m_drive.ArcadeDrive((-(oi.m_driverGamePad.GetRawAxis(1)) * fn.InputVoltage(oi.m_driveSpeed)),
+	(oi.m_driverGamePad.GetRawAxis(4) * fn.InputVoltage(oi.m_turnSpeed)));
+
+	// Basic if statement for ramp
+	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonLB)) {
+		robotMap.m_ramp.Set(fn.InputVoltage(-12));
 	}
+	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonRB)) {
+		robotMap.m_ramp.Set(fn.InputVoltage(12));
+	} 
+	else {
+		robotMap.m_ramp.Set(fn.InputVoltage(0));
+	}
+
+	// Sets m_armState based on Dpad presses
+	// switch(oi.m_driverGamePad.GetPOV()) {
+	// 	case 180:
+	// 		robotMap.m_armState = 2;
+	// 		break;
+	// 	case 270:
+	// 		robotMap.m_armState = 1;
+	// 		break;
+	// 	case 0:
+	// 		robotMap.m_armState = 0;
+	// 		break;
+	// }
+
+	if (oi.m_driverGamePad.GetRawButton(oi.m_buttonA)) {
+		robotMap.m_armState = 2;
+	}
+	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonB)) {
+		robotMap.m_armState = 1;
+	}
+	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonX)) {
+		robotMap.m_armState = 0;
+	}
+	else if (oi.m_driverGamePad.GetRawButton(oi.m_buttonY)) {
+		robotMap.m_armState = 3;
+	}
+
+	// Switch for PID setpoints for arm in 2:1 ratio e.g (180 = 90degrees)
+	switch(robotMap.m_armState) 
+	{
+		case 0:
+			robotMap.m_armControl.SetSetpoint(0.00);
+			break;
+		case 1: 
+			robotMap.m_armControl.SetSetpoint(112.00);
+			break;
+		case 2: 
+			robotMap.m_armControl.SetSetpoint(180.00);
+			break;
+		case 3:
+			robotMap.m_armControl.SetSetpoint(-180.00);
+			break;
+	}
+
+	// Basic Auto Alignment Handler (ntested)
+	// if (oi.m_driverGamePad.GetRawButton(oi.m_buttonY)) 
+	// {
+	// 	if (vision.lenStatus) {
+	// 		robotMap.m_drive.ArcadeDrive((fn.InputVoltage(1)), fn.InputVoltage(0));
+	// 	} 
+	// 	else {
+	// 		robotMap.m_drive.ArcadeDrive((fn.InputVoltage(0)), fn.InputVoltage(1));
+	// 	}
+	// }
+	
 }
 
 void Robot::TestPeriodic() {}
