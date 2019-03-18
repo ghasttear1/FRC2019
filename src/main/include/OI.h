@@ -1,6 +1,8 @@
 #pragma once
 
 #include <frc/Joystick.h>
+#include <frc/Shuffleboard/Shuffleboard.h>
+#include <networktables/NetworkTableEntry.h>
 
 using namespace frc;
 
@@ -15,6 +17,18 @@ class OI {
         int m_buttonY = 4;
         int m_buttonLB = 5;
         int m_buttonRB = 6;
-        float m_driveSpeed = 8.8;
-        float m_turnSpeed = 7.2;
+        nt::NetworkTableEntry m_driveSpeed
+        {
+            Shuffleboard::GetTab("Main")
+                .Add("Drive Speed", 12)
+                .WithWidget("Number Slider")
+                .GetEntry()
+        };
+        nt::NetworkTableEntry m_turnSpeed
+        {
+            Shuffleboard::GetTab("Main")
+                .Add("Turn Speed", 12)
+                .WithWidget("Number Slider")
+                .GetEntry()
+        };
 };
