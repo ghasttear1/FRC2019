@@ -9,8 +9,8 @@ void Vision::VisionThread(Vision* vision) {
     // Initialise variables
     float leniencyFactor = 0.3;
     unsigned int brightnessMin = 180;
-    unsigned int x = 155;
-    unsigned int y = 115;
+    unsigned int x = 115;
+    unsigned int y = 85;
     unsigned int width = 5;
     unsigned int height = 5;
     int factor;
@@ -26,7 +26,7 @@ void Vision::VisionThread(Vision* vision) {
     camera.SetFPS(30);
     // Set frame input and output
     CvSink cvSink = CameraServer::GetInstance()->GetVideo();
-    CvSource output = CameraServer::GetInstance()->PutVideo("customview", 320, 240);
+    CvSource output = CameraServer::GetInstance()->PutVideo("customview", 240, 180);
 
     // Wait for camera to start properly (do not remove)
     Wait(10);

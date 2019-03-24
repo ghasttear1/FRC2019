@@ -11,17 +11,14 @@ void Robot::RobotInit() {
 	// Start and detach the vision thread
 	thread visionThread(Vision::VisionThread, &vision);
 	visionThread.detach();
-	// Start and detach the arm initialisation thread
-	// thread armThread(RobotMap::ArmInit, &robotMap);
-	// armThread.detach();
+
+	// Initialise Arm Encoder and PID
 	robotMap.m_armEncoder.Reset();
 	robotMap.m_armControl.Enable();
 	robotMap.m_armControl.SetSetpoint(0);
 
-	// Dashboard data
-	Shuffleboard::GetTab("Main")
-		.Add("PID", &robotMap.m_armControl)
-		.WithWidget("PID Command");
+	// Sending PID to Dashboard
+	SmartDashboard::PutData("PID", &robotMap.m_armControl);
 }
 
 void Robot::RobotPeriodic() {}

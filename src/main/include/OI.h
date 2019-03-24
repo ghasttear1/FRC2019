@@ -2,6 +2,7 @@
 
 #include <frc/Joystick.h>
 #include <frc/Shuffleboard/Shuffleboard.h>
+#include <frc/smartdashboard/SmartDashboard.h>
 #include <networktables/NetworkTableEntry.h>
 
 using namespace frc;
